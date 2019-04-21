@@ -1,15 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import InfiniteScroll from 'react-infinite-scroll-component';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
@@ -72,9 +71,9 @@ class IndexPage extends React.Component {
     super(props);
 
     this.state = {
-      currentProduct: '',
-      previousProduct: '',
-      selectedProduct: '',
+      product: '',
+      // previousProduct: '',
+      // selectedProduct: '',
       results: [],
       limit: 5,
       offset: 0
@@ -83,30 +82,50 @@ class IndexPage extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.prettifyListOfStrings = this.prettifyListOfStrings.bind(this);
     this.fetchSomeMore = this.fetchSomeMore.bind(this);
+    this.handleOnScroll = this.handleOnScroll.bind(this);
   }
 
   handleChange = (evt) => {
-    this.setState({ currentProduct: evt.target.value });
+    this.setState({ product: evt.target.value });
   };
 
   handleSubmit = (evt) => {
     evt.preventDefault();
 
-    this.fetchSomeMore().then(res => this.setState(prevState => ({
-      results: [...prevState.results, ...res]
+    this.fetchSomeMore().then(results => this.setState(prevState => ({
+      results
     })));
   };
 
-  fetchSomeMore = async ({ currentProduct, limit, offset } = this.state) => {
+  handleOnScroll = () => {
+    const scrollTop = (document.documentElement && document.documentElement.scrollTop)
+      || document.body.scrollTop;
+    const scrollHeight = (document.documentElement && document.documentElement.scrollHeight)
+      || document.body.scrollHeight;
+    const clientHeight = document.documentElement.clientHeight || window.innerHeight;
+    const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
+
+    if (scrolledToBottom) {
+      this.fetchSomeMore().then(res => this.setState((prevState) => {
+        const concatenatedProducts = [...prevState.results, ...res];
+        return {
+          results: concatenatedProducts,
+          offset: concatenatedProducts.length
+        };
+      }));
+    }
+  };
+
+  fetchSomeMore = async ({ product, limit, offset } = this.state) => {
     const data = await fetch('/api/getProducts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product: currentProduct, limit, offset })
+      body: JSON.stringify({ product, limit, offset })
     })
       .then(response => response.json())
       .then(body => body)
       .catch((err) => {
-        console.log('fetchSomeMore', err);
+        console.log(`Error on fetchSomeMore(): ${err}`);
       });
     return data;
   };
@@ -115,6 +134,14 @@ class IndexPage extends React.Component {
     .split(',')
     .map(el => el.charAt(0).toUpperCase() + el.slice(1))
     .join(', ');
+
+  componentDidMount = () => {
+    window.addEventListener('scroll', this.handleOnScroll);
+  };
+
+  componentWillUnmount = () => {
+    window.removeEventListener('scroll', this.handleOnScroll);
+  };
 
   render() {
     const { classes } = this.props;
@@ -137,7 +164,7 @@ class IndexPage extends React.Component {
                 className={classes.searchField}
                 variant="outlined"
                 label="Produit"
-                value={this.state.currentProduct}
+                value={this.state.product}
                 onChange={this.handleChange}
                 fullWidth
               />
@@ -156,12 +183,6 @@ class IndexPage extends React.Component {
               </div>
             </form>
           </div>
-          {/* <InfiniteScroll
-            dataLength={this.state.results.length}
-            next={this.fetchSomeMore}
-            hasMore
-            loader={<h4>Loading...</h4>}
-          > */}
           <div className={classNames(classes.layout, classes.cardGrid)}>
             <Grid container spacing={40}>
               {this.state.results.map(card => (
@@ -207,7 +228,6 @@ class IndexPage extends React.Component {
               ))}
             </Grid>
           </div>
-          {/* </InfiniteScroll> */}
         </main>
         <footer className={classes.footer}>
           <Typography
