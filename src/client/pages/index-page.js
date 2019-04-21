@@ -7,7 +7,21 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import Drawer from '@material-ui/core/Drawer';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import Switch from '@material-ui/core/Switch';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
 import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -60,6 +74,19 @@ const styles = theme => ({
     flexGrow: 1
   },
   searchField: {},
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    margin: 'auto',
+    width: 'fit-content'
+  },
+  formControl: {
+    marginTop: theme.spacing.unit * 2,
+    minWidth: 120
+  },
+  formControlLabel: {
+    marginTop: theme.spacing.unit
+  },
   footer: {
     backgroundColor: theme.palette.background.paper,
     padding: theme.spacing.unit * 6
@@ -72,18 +99,31 @@ class IndexPage extends React.Component {
 
     this.state = {
       product: '',
-      // previousProduct: '',
-      // selectedProduct: '',
+      productSearched: '',
+      productSelected: '',
       results: [],
+      drawer: false,
+      dialog: false,
       limit: 5,
       offset: 0
     };
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.prettifyListOfStrings = this.prettifyListOfStrings.bind(this);
     this.fetchSomeMore = this.fetchSomeMore.bind(this);
+    this.handleChange = this.handleChange.bind(this);
     this.handleOnScroll = this.handleOnScroll.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleToggleDrawer = this.handleToggleDrawer.bind(this);
+    this.prettifyListOfStrings = this.prettifyListOfStrings.bind(this);
+    this.handleDialogOpen = this.handleDialogOpen.bind(this);
+    this.handleDialogClose = this.handleDialogClose.bind(this);
   }
+
+  handleDialogOpen = () => {
+    this.setState({ dialog: true });
+  };
+
+  handleDialogClose = () => {
+    this.setState({ dialog: false });
+  };
 
   handleChange = (evt) => {
     this.setState({ product: evt.target.value });
@@ -91,10 +131,18 @@ class IndexPage extends React.Component {
 
   handleSubmit = (evt) => {
     evt.preventDefault();
+    this.setState({ productSearched: this.state.product });
 
-    this.fetchSomeMore().then(results => this.setState(prevState => ({
-      results
-    })));
+    this.fetchSomeMore().then(results => this.setState({
+      results,
+      offset: results.length
+    }));
+  };
+
+  handleToggleDrawer = (state) => {
+    // this.setState({
+    //   drawer: state
+    // });
   };
 
   handleOnScroll = () => {
@@ -116,11 +164,11 @@ class IndexPage extends React.Component {
     }
   };
 
-  fetchSomeMore = async ({ product, limit, offset } = this.state) => {
+  fetchSomeMore = async ({ productSearched, limit, offset } = this.state) => {
     const data = await fetch('/api/getProducts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product, limit, offset })
+      body: JSON.stringify({ product: productSearched, limit, offset })
     })
       .then(response => response.json())
       .then(body => body)
@@ -151,6 +199,9 @@ class IndexPage extends React.Component {
         <CssBaseline />
         <AppBar position="static" className={classes.appBar}>
           <Toolbar>
+            <IconButton color="inherit" aria-label="Open drawer">
+              <MenuIcon />
+            </IconButton>
             <Typography variant="h6" color="inherit" noWrap>
               Open Food Facts
             </Typography>
@@ -188,13 +239,16 @@ class IndexPage extends React.Component {
               {this.state.results.map(card => (
                 <Grid
                   item
-                  key={card.code}
+                  key={card._id}
                   sm={6}
                   md={4}
                   lg={3}
                   className={classes.gridItem}
                 >
-                  <Card className={classes.card}>
+                  <Card
+                    className={classes.card}
+                    onClick={this.handleDialogOpen}
+                  >
                     <CardMedia
                       className={classes.cardMedia}
                       image={card.image_url}
@@ -239,6 +293,23 @@ class IndexPage extends React.Component {
             Last update: 4 weeks ago
           </Typography>
         </footer>
+        <Dialog
+          fullWidth
+          fullScreen
+          open={this.state.dialog}
+          onClose={this.handleDialogClose}
+          aria-labelledby="max-width-dialog-title"
+        >
+          <DialogTitle id="max-width-dialog-title">Product</DialogTitle>
+          <DialogContent>
+            <DialogContentText />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleDialogClose} color="primary">
+              Fermer
+            </Button>
+          </DialogActions>
+        </Dialog>
       </React.Fragment>
     );
   }
