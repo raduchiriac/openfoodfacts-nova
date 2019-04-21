@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -48,6 +48,9 @@ const styles = theme => ({
     display: 'flex',
     flexDirection: 'column'
   },
+  cardTitle: {
+    lineHeight: 1
+  },
   gridItem: {
     flex: '0 0 100%'
   },
@@ -71,14 +74,15 @@ class IndexPage extends React.Component {
     this.state = {
       currentProduct: '',
       previousProduct: '',
-      results: [],
       selectedProduct: '',
+      results: [],
       limit: 5,
       offset: 0
     };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.prettifyListOfStrings = this.prettifyListOfStrings.bind(this);
+    this.fetchSomeMore = this.fetchSomeMore.bind(this);
   }
 
   handleChange = (evt) => {
@@ -88,19 +92,23 @@ class IndexPage extends React.Component {
   handleSubmit = (evt) => {
     evt.preventDefault();
 
-    const { currentProduct, limit, offset } = this.state;
-    fetch('/api/getProducts', {
+    this.fetchSomeMore().then(res => this.setState(prevState => ({
+      results: [...prevState.results, ...res]
+    })));
+  };
+
+  fetchSomeMore = async ({ currentProduct, limit, offset } = this.state) => {
+    const data = await fetch('/api/getProducts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product: currentProduct, limit, offset })
     })
       .then(response => response.json())
-      .then((body) => {
-        this.setState(prevState => ({ results: [...prevState.results, ...body] }));
-      })
+      .then(body => body)
       .catch((err) => {
-        console.log(err);
+        console.log('fetchSomeMore', err);
       });
+    return data;
   };
 
   prettifyListOfStrings = list => list
@@ -136,7 +144,11 @@ class IndexPage extends React.Component {
               <div className={classes.heroButtons}>
                 <Grid container spacing={16} justify="center">
                   <Grid item>
-                    <Button variant="contained" color="primary" onClick={this.handleSubmit}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={this.handleSubmit}
+                    >
                       Rechercher
                     </Button>
                   </Grid>
@@ -144,10 +156,23 @@ class IndexPage extends React.Component {
               </div>
             </form>
           </div>
+          {/* <InfiniteScroll
+            dataLength={this.state.results.length}
+            next={this.fetchSomeMore}
+            hasMore
+            loader={<h4>Loading...</h4>}
+          > */}
           <div className={classNames(classes.layout, classes.cardGrid)}>
             <Grid container spacing={40}>
               {this.state.results.map(card => (
-                <Grid item key={card.code} sm={6} md={4} lg={3} className={classes.gridItem}>
+                <Grid
+                  item
+                  key={card.code}
+                  sm={6}
+                  md={4}
+                  lg={3}
+                  className={classes.gridItem}
+                >
                   <Card className={classes.card}>
                     <CardMedia
                       className={classes.cardMedia}
@@ -155,7 +180,12 @@ class IndexPage extends React.Component {
                       title={card.code}
                     />
                     <CardContent className={classes.cardContent}>
-                      <Typography gutterBottom variant="h6" component="h5">
+                      <Typography
+                        className={classes.cardTitle}
+                        gutterBottom
+                        variant="h6"
+                        component="h5"
+                      >
                         {card.product_name}
                       </Typography>
                       {card.stores.length > 0 && (
@@ -177,9 +207,15 @@ class IndexPage extends React.Component {
               ))}
             </Grid>
           </div>
+          {/* </InfiniteScroll> */}
         </main>
         <footer className={classes.footer}>
-          <Typography variant="subtitle1" align="center" color="textSecondary" component="p">
+          <Typography
+            variant="subtitle1"
+            align="center"
+            color="textSecondary"
+            component="p"
+          >
             Last update: 4 weeks ago
           </Typography>
         </footer>
