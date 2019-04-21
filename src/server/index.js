@@ -30,7 +30,10 @@ const handleError = (err) => {
 connectDb().then(async () => {
   // console.log(dbStatus());
   app.post('/api/getProducts', (req, res) => {
-    const query = models.Product.find(buildProjection(req.body.product)).limit(5);
+    const query = models.Product.find(buildProjection(req.body.product))
+      .limit(req.body.limit)
+      .skip(req.body.offset)
+      .sort({ last_modified_t: -1 });
     query
       .exec()
       .then(docs => res.status(200).send(docs))
