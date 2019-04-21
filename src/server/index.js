@@ -1,4 +1,5 @@
 import express from 'express';
+import models, { connectDb, dbStatus } from './database';
 
 require('dotenv').config();
 
@@ -18,15 +19,25 @@ const buildProjection = (txt) => {
     'ingredients_text'
   ];
   return {
-    $or: fields.map(el => ({ [el]: txt }))
+    $or: fields.map(el => ({ [el]: { $regex: txt, $options: 'i' } }))
   };
 };
 
-app.post('/api/getProducts', (req, res) => {
-  console.log(buildProjection(req.body.product));
-  return res.status(200);
-});
+const handleError = (err) => {
+  console.log(err);
+};
 
-app.listen(port, () => {
-  console.log(`server listening on port: ${port}`);
+connectDb().then(async () => {
+  // console.log(dbStatus());
+  app.post('/api/getProducts', (req, res) => {
+    const query = models.Product.find(buildProjection(req.body.product)).limit(5);
+    query
+      .exec()
+      .then(docs => res.status(200).send(docs))
+      .catch(err => handleError(err));
+  });
+
+  app.listen(port, () => {
+    console.log(`server listening on port: ${port}`);
+  });
 });
