@@ -1,9 +1,15 @@
-# Open Food Facts (Nova)
+# Open Food Facts
+
+Open Food Facts is a collaborative, free and open database of food products from around the world.
+
+## Open Food Facts (the Nova 1 graded)
 
 ![](public/img/nutriscore-a.svg)
 ![](public/img/nova-group-1.svg)
 
-This project is a simple listing of products from the Open Food Facts data source under the NOVA 1 and Nutrition Score A grade
+This project is simply listing products from the Open Food Facts free data source. Only items under the **NOVA 1** and **Nutrition Score A** grades are selected.
+
+### Technology
 
 ### Sample data
 
@@ -17,5 +23,18 @@ mongoimport --db openfood --collection products --type tsv --file openfoodfacts_
 
 ```bash
 npm install
+cp .env-sample .env
 npm run start:dev
 ```
+
+#### Todo
+
+- [x] Build an infinite scroll
+- [ ] Create indexes on the DB
+- [x] Display a Dialog
+- [ ] Display a Drawer
+- [ ] Refine the search method
+- [ ] Add a favorite function using the localStorage
+- [ ] Write a more generic import script
+- [ ] Deploy on Heroku
+- [ ] Break into components (w/ Context API)

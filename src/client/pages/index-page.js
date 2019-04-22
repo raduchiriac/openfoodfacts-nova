@@ -13,12 +13,6 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import Switch from '@material-ui/core/Switch';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
@@ -28,6 +22,11 @@ import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = theme => ({
+  whiteNoWrap: {
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden'
+  },
   appBar: {
     position: 'relative'
   },
@@ -100,7 +99,7 @@ class IndexPage extends React.Component {
     this.state = {
       product: '',
       productSearched: '',
-      productSelected: '',
+      productSelected: {},
       results: [],
       drawer: false,
       dialog: false,
@@ -117,12 +116,13 @@ class IndexPage extends React.Component {
     this.handleDialogClose = this.handleDialogClose.bind(this);
   }
 
-  handleDialogOpen = () => {
-    this.setState({ dialog: true });
+  handleDialogOpen = (id) => {
+    const productSelected = this.state.results.find(obj => obj._id === id);
+    this.setState({ dialog: true, productSelected });
   };
 
   handleDialogClose = () => {
-    this.setState({ dialog: false });
+    this.setState({ dialog: false, productSelected: {} });
   };
 
   handleChange = (evt) => {
@@ -131,7 +131,7 @@ class IndexPage extends React.Component {
 
   handleSubmit = (evt) => {
     evt.preventDefault();
-    this.setState({ productSearched: this.state.product });
+    this.setState({ productSearched: this.state.product.trim() });
 
     this.fetchSomeMore().then(results => this.setState({
       results,
@@ -153,7 +153,7 @@ class IndexPage extends React.Component {
     const clientHeight = document.documentElement.clientHeight || window.innerHeight;
     const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
 
-    if (scrolledToBottom) {
+    if (scrolledToBottom && this.state.productSearched.length) {
       this.fetchSomeMore().then(res => this.setState((prevState) => {
         const concatenatedProducts = [...prevState.results, ...res];
         return {
@@ -180,7 +180,12 @@ class IndexPage extends React.Component {
 
   prettifyListOfStrings = list => list
     .split(',')
-    .map(el => el.charAt(0).toUpperCase() + el.slice(1))
+    .map(
+      el => el
+        .charAt(0)
+        .toUpperCase()
+        .trim() + el.slice(1)
+    )
     .join(', ');
 
   componentDidMount = () => {
@@ -239,7 +244,7 @@ class IndexPage extends React.Component {
               {this.state.results.map(card => (
                 <Grid
                   item
-                  key={card._id}
+                  key={card.code}
                   sm={6}
                   md={4}
                   lg={3}
@@ -247,11 +252,11 @@ class IndexPage extends React.Component {
                 >
                   <Card
                     className={classes.card}
-                    onClick={this.handleDialogOpen}
+                    onClick={() => this.handleDialogOpen(card._id)}
                   >
                     <CardMedia
                       className={classes.cardMedia}
-                      image={card.image_url}
+                      image={card.image_small_url}
                       title={card.code}
                     />
                     <CardContent className={classes.cardContent}>
@@ -300,8 +305,29 @@ class IndexPage extends React.Component {
           onClose={this.handleDialogClose}
           aria-labelledby="max-width-dialog-title"
         >
-          <DialogTitle id="max-width-dialog-title">Product</DialogTitle>
+          <DialogTitle id="max-width-dialog-title">
+            {this.state.productSelected.product_name || ''}
+          </DialogTitle>
           <DialogContent>
+            <img
+              onClick={this.handleDialogClose}
+              style={{ width: '100%' }}
+              alt=""
+              src={this.state.productSelected.image_url}
+            />
+            {Object.keys(this.state.productSelected)
+              .filter(el => this.state.productSelected[el].length > 0)
+              .map(key => (
+                <Typography
+                  color="textSecondary"
+                  key={key}
+                  component="p"
+                  className={classes.whiteNoWrap}
+                >
+                  <strong>{`${key}: `}</strong>
+                  {`${this.state.productSelected[key]}`}
+                </Typography>
+              ))}
             <DialogContentText />
           </DialogContent>
           <DialogActions>
