@@ -1,13 +1,14 @@
 import express from 'express';
 import models, { connectDb, dbStatus } from './database';
 
+process.env.NODE_ENV === 'production' && require('babel-polyfill');
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT;
 
 app.use(express.json());
-app.use(express.static('dist'));
+app.use(express.static('dist-client'));
 
 const buildProjection = (txt) => {
   const fields = [

@@ -1,15 +1,19 @@
 # Open Food Facts
 
-Open Food Facts is a collaborative, free and open database of food products from around the world.
+[Open Food Facts](https://world.openfoodfacts.org/) is a collaborative, free and open database of food products from around the world.
 
 ## Open Food Facts (the Nova 1 graded)
 
 ![](public/img/nutriscore-a.svg)
 ![](public/img/nova-group-1.svg)
 
-This project is simply listing products from the Open Food Facts free data source. Only items under the **NOVA 1** and **Nutrition Score A** grades are selected.
+This project is experimental and is simply listing products from the Open Food Facts free data source. Only items under the **NOVA 1** and **Nutrition Score A** grades are selected.
 
 ### Technology
+
+MERN Stack
+
+![](screenshot.jpg)
 
 ### Sample data
 
@@ -27,7 +31,7 @@ cp .env-sample .env
 npm run start:dev
 ```
 
-#### Todo
+#### TODO
 
 - [x] Build an infinite scroll
 - [ ] Create indexes on the DB

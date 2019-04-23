@@ -131,12 +131,15 @@ class IndexPage extends React.Component {
 
   handleSubmit = (evt) => {
     evt.preventDefault();
-    this.setState({ productSearched: this.state.product.trim() });
-
-    this.fetchSomeMore().then(results => this.setState({
-      results,
-      offset: results.length
-    }));
+    this.setState(
+      prevState => ({ productSearched: prevState.product.trim() }),
+      () => {
+        this.fetchSomeMore().then(results => this.setState({
+          results,
+          offset: results.length
+        }));
+      }
+    );
   };
 
   handleToggleDrawer = (state) => {

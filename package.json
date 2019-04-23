@@ -1,14 +1,14 @@
 {
   "name": "open-food-facts-nova",
-  "version": "0.0.1",
-  "description": "",
-  "main": "src/server/index.js",
+  "version": "0.0.2",
+  "description": "Nova 1 and Nutrition Score A listing",
   "scripts": {
-    "build": "webpack --mode production",
+    "build:client": "webpack --mode production",
+    "build:server": "babel src/server -d dist-server",
     "client": "webpack-dev-server --mode development --devtool inline-source-map --hot",
-    "server": "nodemon --exec babel-node src/server/index.js",
+    "server": "nodemon --exec babel-node src/server",
     "start:dev": "concurrently \"npm run server\" \"npm run client\"",
-    "start": "npm run build && node src/server/index.js"
+    "start": "npm run build:client && npm run build:server && node dist-server"
   },
   "author": "Radu Chiriac",
   "license": "MIT",

@@ -3,6 +3,7 @@ import Product from './product-model';
 
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useCreateIndex', true);
+mongoose.set('autoIndex', false);
 
 const connectDb = () => mongoose.connect(process.env.MONGO_URI);
 const dbStatus = () => ({
