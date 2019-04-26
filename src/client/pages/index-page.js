@@ -20,11 +20,12 @@ import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
+import withRoot from '../withRoot';
 
 const styles = theme => ({
   whiteNoWrap: {
     textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
+    whiteSpace: 'normal',
     overflow: 'hidden'
   },
   appBar: {
@@ -201,6 +202,19 @@ class IndexPage extends React.Component {
 
   render() {
     const { classes } = this.props;
+    const restrictedFields = [
+      'creator',
+      '_id',
+      'url',
+      'image_url',
+      'image_small_url',
+      'image_front_url',
+      'image_front_small_url',
+      'image_ingredients_url',
+      'image_nutrition_url',
+      'image_ingredients_small_url',
+      'image_nutrition_small_url'
+    ];
 
     return (
       <React.Fragment>
@@ -312,14 +326,16 @@ class IndexPage extends React.Component {
             {this.state.productSelected.product_name || ''}
           </DialogTitle>
           <DialogContent>
-            <img
-              onClick={this.handleDialogClose}
-              style={{ width: '100%' }}
-              alt=""
-              src={this.state.productSelected.image_url}
-            />
+            <button type="button" onClick={this.handleDialogClose}>
+              <img
+                style={{ width: '100%' }}
+                alt=""
+                src={this.state.productSelected.image_url}
+              />
+            </button>
             {Object.keys(this.state.productSelected)
               .filter(el => this.state.productSelected[el].length > 0)
+              .filter(el => restrictedFields.indexOf(el) < 0)
               .map(key => (
                 <Typography
                   color="textSecondary"
@@ -328,7 +344,9 @@ class IndexPage extends React.Component {
                   className={classes.whiteNoWrap}
                 >
                   <strong>{`${key}: `}</strong>
-                  {`${this.state.productSelected[key]}`}
+                  {`${this.prettifyListOfStrings(
+                    this.state.productSelected[key]
+                  )}`}
                 </Typography>
               ))}
             <DialogContentText />
@@ -348,4 +366,4 @@ IndexPage.propTypes = {
   classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(IndexPage);
+export default withRoot(withStyles(styles)(IndexPage));

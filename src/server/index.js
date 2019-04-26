@@ -10,7 +10,7 @@ const port = process.env.PORT;
 app.use(express.json());
 app.use(express.static('dist-client'));
 
-const buildProjection = (txt) => {
+const buildQuery = (txt) => {
   const fields = [
     'product_name',
     'categories',
@@ -31,7 +31,7 @@ const handleError = (err) => {
 connectDb().then(async () => {
   // console.log(dbStatus());
   app.post('/api/getProducts', (req, res) => {
-    const query = models.Product.find(buildProjection(req.body.product))
+    const query = models.Product.find(buildQuery(req.body.product))
       .limit(req.body.limit)
       .skip(req.body.offset)
       .sort({ last_modified_t: -1 });
