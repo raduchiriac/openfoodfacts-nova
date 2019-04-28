@@ -5,19 +5,20 @@
   "scripts": {
     "build:client": "webpack --mode production",
     "build:server": "babel src/server -d dist-server",
+    "build": "npm run build:client && npm run build:server",
     "client": "webpack-dev-server --mode development --devtool inline-source-map --hot",
     "server": "nodemon --exec babel-node src/server",
     "start:dev": "concurrently \"npm run server\" \"npm run client\"",
-    "start": "npm run build:client && npm run build:server && node dist-server"
+    "start": "npm run build && node dist-server"
   },
   "author": "Radu Chiriac",
   "license": "MIT",
   "dependencies": {
-    "@babel/cli": "7.4.3",
-    "@babel/core": "7.4.3",
+    "@babel/cli": "7.4.4",
+    "@babel/core": "7.4.4",
     "@babel/node": "7.2.2",
-    "@babel/plugin-proposal-class-properties": "7.4.0",
-    "@babel/preset-env": "7.4.3",
+    "@babel/plugin-proposal-class-properties": "7.4.4",
+    "@babel/preset-env": "7.4.4",
     "@babel/preset-react": "7.0.0",
     "@material-ui/core": "3.9.3",
     "@material-ui/icons": "3.0.2",
