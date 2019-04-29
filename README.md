@@ -31,6 +31,14 @@ cp .env-sample .env
 npm run start:dev
 ```
 
+### Production
+
+See the bundeled version in action
+
+```bash
+NODE_ENV=production npm start
+```
+
 #### TODO
 
 - [x] Build an infinite scroll
@@ -40,5 +48,5 @@ npm run start:dev
 - [ ] Refine the search method
 - [ ] Add a favorite function using the localStorage
 - [ ] Write a more generic import script
-- [ ] Deploy on Heroku
+- [x] Deploy on Heroku
 - [ ] Break into components (w/ Context API)

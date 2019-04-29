@@ -1,33 +1,31 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Drawer from '@material-ui/core/Drawer';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Drawer from '@material-ui/core/Drawer';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+
 import { withStyles } from '@material-ui/core/styles';
 import withRoot from '../withRoot';
 
 const styles = theme => ({
-  whiteNoWrap: {
-    textOverflow: 'ellipsis',
-    whiteSpace: 'normal',
-    overflow: 'hidden'
-  },
   appBar: {
     position: 'relative'
   },
@@ -52,6 +50,12 @@ const styles = theme => ({
       marginLeft: 'auto',
       marginRight: 'auto'
     }
+  },
+  centerContent: {
+    justifyContent: 'center'
+  },
+  circularProgress: {
+    margin: `${theme.spacing.unit * 2}px 0`
   },
   cardGrid: {
     padding: `${theme.spacing.unit * 4}px 0`
@@ -102,10 +106,12 @@ class IndexPage extends React.Component {
       productSearched: '',
       productSelected: {},
       results: [],
+      limit: 10,
+      offset: 0,
+      loading: false,
+      hasMore: false,
       drawer: false,
-      dialog: false,
-      limit: 5,
-      offset: 0
+      dialog: false
     };
     this.fetchSomeMore = this.fetchSomeMore.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -127,20 +133,23 @@ class IndexPage extends React.Component {
   };
 
   handleChange = (evt) => {
-    this.setState({ product: evt.target.value });
+    this.setState({ product: evt.target.value.trim() });
   };
 
   handleSubmit = (evt) => {
     evt.preventDefault();
-    this.setState(
-      prevState => ({ productSearched: prevState.product.trim() }),
-      () => {
-        this.fetchSomeMore().then(results => this.setState({
-          results,
-          offset: results.length
-        }));
-      }
-    );
+    if (this.state.product.length) {
+      this.setState(
+        prevState => ({ productSearched: prevState.product.trim() }),
+        () => {
+          this.fetchSomeMore().then(results => this.setState({
+            results,
+            hasMore: results.length === this.state.limit,
+            offset: results.length
+          }));
+        }
+      );
+    }
   };
 
   handleToggleDrawer = (state) => {
@@ -157,25 +166,38 @@ class IndexPage extends React.Component {
     const clientHeight = document.documentElement.clientHeight || window.innerHeight;
     const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
 
-    if (scrolledToBottom && this.state.productSearched.length) {
+    if (
+      scrolledToBottom
+      && this.state.productSearched.length
+      && this.state.hasMore
+    ) {
       this.fetchSomeMore().then(res => this.setState((prevState) => {
-        const concatenatedProducts = [...prevState.results, ...res];
+        if (res.length) {
+          const concatenatedProducts = [...prevState.results, ...res];
+          return {
+            results: concatenatedProducts,
+            offset: concatenatedProducts.length
+          };
+        }
         return {
-          results: concatenatedProducts,
-          offset: concatenatedProducts.length
+          hasMore: false
         };
       }));
     }
   };
 
   fetchSomeMore = async ({ productSearched, limit, offset } = this.state) => {
+    this.setState({ loading: true });
     const data = await fetch('/api/getProducts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product: productSearched, limit, offset })
     })
       .then(response => response.json())
-      .then(body => body)
+      .then((body) => {
+        this.setState({ loading: false });
+        return body;
+      })
       .catch((err) => {
         console.log(`Error on fetchSomeMore(): ${err}`);
       });
@@ -186,9 +208,9 @@ class IndexPage extends React.Component {
     .split(',')
     .map(
       el => el
+        .trim()
         .charAt(0)
-        .toUpperCase()
-        .trim() + el.slice(1)
+        .toUpperCase() + el.slice(1)
     )
     .join(', ');
 
@@ -204,6 +226,7 @@ class IndexPage extends React.Component {
     const { classes } = this.props;
     const restrictedFields = [
       'creator',
+      'product_name',
       '_id',
       'url',
       'image_url',
@@ -236,7 +259,7 @@ class IndexPage extends React.Component {
                 id="search-field"
                 className={classes.searchField}
                 variant="outlined"
-                label="Produit"
+                label="Product"
                 value={this.state.product}
                 onChange={this.handleChange}
                 fullWidth
@@ -249,7 +272,7 @@ class IndexPage extends React.Component {
                       color="primary"
                       onClick={this.handleSubmit}
                     >
-                      Rechercher
+                      Search
                     </Button>
                   </Grid>
                 </Grid>
@@ -257,14 +280,15 @@ class IndexPage extends React.Component {
             </form>
           </div>
           <div className={classNames(classes.layout, classes.cardGrid)}>
-            <Grid container spacing={40}>
+            <Grid container spacing={16} className={classes.centerContent}>
               {this.state.results.map(card => (
                 <Grid
                   item
                   key={card.code}
-                  sm={6}
-                  md={4}
-                  lg={3}
+                  xs={12}
+                  sm={12}
+                  md={6}
+                  lg={4}
                   className={classes.gridItem}
                 >
                   <Card
@@ -281,19 +305,19 @@ class IndexPage extends React.Component {
                         className={classes.cardTitle}
                         gutterBottom
                         variant="h6"
-                        component="h5"
+                        component="h6"
                       >
                         {card.product_name}
                       </Typography>
                       {card.stores.length > 0 && (
                         <Typography>
-                          <strong>Magasins: </strong>
+                          <strong>Stores: </strong>
                           {this.prettifyListOfStrings(card.stores)}
                         </Typography>
                       )}
                       {card.origins.length > 0 && (
                         <Typography>
-                          <strong>Origine: </strong>
+                          <strong>Origin: </strong>
                           {this.prettifyListOfStrings(card.origins)}
                         </Typography>
                       )}
@@ -302,19 +326,20 @@ class IndexPage extends React.Component {
                   </Card>
                 </Grid>
               ))}
+              {this.state.loading && (
+                <Grid
+                  sm={12}
+                  md={12}
+                  lg={12}
+                  item
+                  className={classes.circularProgress}
+                >
+                  <CircularProgress />
+                </Grid>
+              )}
             </Grid>
           </div>
         </main>
-        <footer className={classes.footer}>
-          <Typography
-            variant="subtitle1"
-            align="center"
-            color="textSecondary"
-            component="p"
-          >
-            Last update: 4 weeks ago
-          </Typography>
-        </footer>
         <Dialog
           fullWidth
           fullScreen
@@ -326,22 +351,22 @@ class IndexPage extends React.Component {
             {this.state.productSelected.product_name || ''}
           </DialogTitle>
           <DialogContent>
-            <button type="button" onClick={this.handleDialogClose}>
+            <Button type="button" onClick={this.handleDialogClose}>
               <img
                 style={{ width: '100%' }}
                 alt=""
                 src={this.state.productSelected.image_url}
               />
-            </button>
+            </Button>
             {Object.keys(this.state.productSelected)
-              .filter(el => this.state.productSelected[el].length > 0)
+              .filter(el => !!this.state.productSelected[el].length)
               .filter(el => restrictedFields.indexOf(el) < 0)
               .map(key => (
                 <Typography
                   color="textSecondary"
                   key={key}
                   component="p"
-                  className={classes.whiteNoWrap}
+                  noWrap
                 >
                   <strong>{`${key}: `}</strong>
                   {`${this.prettifyListOfStrings(
@@ -353,7 +378,7 @@ class IndexPage extends React.Component {
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleDialogClose} color="primary">
-              Fermer
+              Close
             </Button>
           </DialogActions>
         </Dialog>

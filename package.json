@@ -4,12 +4,12 @@
   "description": "Nova 1 and Nutrition Score A listing",
   "scripts": {
     "build:client": "webpack --mode production",
-    "build:server": "babel src/server -d dist-server",
+    "build:server": "babel src/server -d dist/server",
     "build": "npm run build:client && npm run build:server",
     "client": "webpack-dev-server --mode development --devtool inline-source-map --hot",
     "server": "nodemon --exec babel-node src/server",
     "start:dev": "concurrently \"npm run server\" \"npm run client\"",
-    "start": "npm run build && node dist-server"
+    "start": "npm run build && node dist/server"
   },
   "author": "Radu Chiriac",
   "license": "MIT",

@@ -8,7 +8,7 @@ const app = express();
 const port = process.env.PORT;
 
 app.use(express.json());
-app.use(express.static('dist-client'));
+app.use(express.static('dist/client'));
 
 const buildQuery = (txt) => {
   const fields = [
@@ -29,7 +29,7 @@ const handleError = (err) => {
 };
 
 connectDb().then(async () => {
-  // console.log(dbStatus());
+  console.log(dbStatus());
   app.post('/api/getProducts', (req, res) => {
     const query = models.Product.find(buildQuery(req.body.product))
       .limit(req.body.limit)
