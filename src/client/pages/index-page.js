@@ -7,7 +7,6 @@ import Button from '@material-ui/core/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -23,6 +22,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
 import { withStyles } from '@material-ui/core/styles';
+import Loading from '../components/Loading';
 import withRoot from '../withRoot';
 
 const styles = theme => ({
@@ -53,9 +53,6 @@ const styles = theme => ({
   },
   centerContent: {
     justifyContent: 'center'
-  },
-  circularProgress: {
-    margin: `${theme.spacing.unit * 2}px 0`
   },
   cardGrid: {
     padding: `${theme.spacing.unit * 4}px 0`
@@ -326,17 +323,7 @@ class IndexPage extends React.Component {
                   </Card>
                 </Grid>
               ))}
-              {this.state.loading && (
-                <Grid
-                  sm={12}
-                  md={12}
-                  lg={12}
-                  item
-                  className={classes.circularProgress}
-                >
-                  <CircularProgress />
-                </Grid>
-              )}
+              {this.state.loading && <Loading />}
             </Grid>
           </div>
         </main>
